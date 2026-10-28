@@ -258,7 +258,7 @@ export const LineFigure: React.FC<{ gap: 1 | 2; ok: boolean; width?: number }> =
   const bottom = 132;
   const xs = [0, 1, 2, 3].map((i) => x0 + i * unit);
   return (
-    <svg viewBox="0 0 300 210" style={{ width }} role="img">
+    <svg viewBox="0 0 300 200" style={{ width }} role="img">
       <rect
         x={xs[0]}
         y={top}
@@ -271,59 +271,32 @@ export const LineFigure: React.FC<{ gap: 1 | 2; ok: boolean; width?: number }> =
       ))}
       <text
         x={150}
-        y={bottom + 38}
+        y={bottom + 40}
         textAnchor="middle"
         fontSize="17"
         fontFamily={inter}
         fontWeight="700"
         fill={ok ? theme.ok : theme.bad}
       >
-        {ok ? "adjacent \u2192 square" : "2 apart \u2192 rectangle"}
-      </text>
-      <text
-        x={150}
-        y={bottom + 62}
-        textAnchor="middle"
-        fontSize="17"
-        fontFamily={inter}
-        fontWeight="700"
-        fill={ok ? theme.ok : theme.bad}
-      >
-        {ok ? "\u2713" : "\u2717"}
+        {ok ? "adjacent → square ✓" : "2 apart → rectangle ✗"}
       </text>
     </svg>
   );
 };
 
 export const SharedLineFigure: React.FC<{ width?: number }> = ({ width = 300 }) => (
-  <svg viewBox="0 0 300 330" style={{ width }} role="img">
+  <svg viewBox="0 0 300 320" style={{ width }} role="img">
     <rect x={45} y={30} width={210} height={210} fill={theme.card} stroke={theme.line} strokeWidth={2} />
     <line x1={45} y1={135} x2={255} y2={135} stroke={theme.line} strokeWidth={2} />
     <line x1={150} y1={30} x2={150} y2={240} stroke={theme.line} strokeWidth={2} />
     <rect x={49} y={34} width={98} height={98} rx={10} fill={theme.accent} />
     <rect x={153} y={139} width={98} height={98} rx={10} fill={theme.accent} />
     <line x1={35} y1={135} x2={265} y2={135} stroke="#f59e0b" strokeWidth={7} />
-    <text
-      x={150}
-      y={286}
-      textAnchor="middle"
-      fontSize="16"
-      fontFamily={inter}
-      fontWeight="700"
-      fill={theme.faint}
-    >
-      shared line,
+    <text x={150} y={282} textAnchor="middle" fontSize="16" fontFamily={inter} fontWeight="700" fill={theme.faint}>
+      {"shared line,"}
     </text>
-    <text
-      x={150}
-      y={310}
-      textAnchor="middle"
-      fontSize="16"
-      fontFamily={inter}
-      fontWeight="700"
-      fill={theme.faint}
-    >
-      different rows \u2192 allowed
+    <text x={150} y={306} textAnchor="middle" fontSize="16" fontFamily={inter} fontWeight="700" fill={theme.faint}>
+      {"different rows → allowed"}
     </text>
   </svg>
 );
