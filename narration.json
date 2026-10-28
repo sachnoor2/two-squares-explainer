@@ -1,0 +1,48 @@
+{
+  "fps": 30,
+  "voice": "en_US-lessac-medium",
+  "pad": 0.7,
+  "minSeconds": 4.0,
+  "scenes": [
+    {
+      "id": "01-title",
+      "text": "Two squares on an eight by eight chessboard. They must not share a row, and they must not share a column. The answer is one thousand five hundred and sixty eight. But the part worth understanding is a single factor of two."
+    },
+    {
+      "id": "02-problem",
+      "text": "Start with the board. Sixty four cells. Pick any two of them and there are two thousand and sixteen possible pairs. The illegal ones are exactly the pairs that sit in one row or in one column. So we could count everything and subtract. Instead, let us build the answer directly, in three moves."
+    },
+    {
+      "id": "03-rows",
+      "text": "Move one. Every square sits in exactly one of the eight rows. Decide which two rows your two squares will live in. Eight choose two is twenty eight."
+    },
+    {
+      "id": "04-columns",
+      "text": "Move two. Do the same across the board. Eight choose two columns, twenty eight ways again. Two rows and two columns make a frame, so there are twenty eight times twenty eight, that is seven hundred and eighty four frames."
+    },
+    {
+      "id": "05-block",
+      "text": "Move three. Those two rows and two columns cross in exactly four cells. Both squares must come from this little block, and even inside the block they still may not share a row or a column."
+    },
+    {
+      "id": "06-why-two",
+      "text": "Now the step everyone trips on. The block holds four cells, so there are six ways to choose two of them. Check them one by one. These two share a row. These two share a column. So does this pair. And this one. Four pairs are illegal. Two survive, and they are the two diagonals of the block. That is where the two comes from. It is not a formula. It is simply the number of legal pairs inside a two by two block."
+    },
+    {
+      "id": "07-total",
+      "text": "So the total is twenty eight, times twenty eight, times two. One thousand five hundred and sixty eight pairs of squares. Notice what happens if you forget the two. You get seven hundred and eighty four, exactly half the answer, because you counted only one diagonal of every block."
+    },
+    {
+      "id": "08-check",
+      "text": "Test the formula on the smallest board. A two by two board. Two choose two is one, twice, times two, equals two. And indeed a two by two board has six pairs of cells, four of which share a row or a column, leaving the two diagonals."
+    },
+    {
+      "id": "09-pitfall",
+      "text": "One tempting shortcut is to use the nine grid lines and pick two horizontal and two vertical. That gives thirty six each, and it is wrong twice over. First, a unit square needs adjacent lines. Two lines that are two units apart enclose a one by two rectangle. Second, you must forbid the same row and the same column, not the lines themselves. Two squares may share a line and still be in different rows."
+    },
+    {
+      "id": "10-recap",
+      "text": "Two rows, two columns, two diagonals. That is the whole method, and now you know where every factor comes from."
+    }
+  ]
+}

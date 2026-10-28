@@ -1,0 +1,86 @@
+name: Render explainer video
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: TTS + Remotion render
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Make sure ffmpeg is available
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -1
+
+      # Piper is a small, CPU-only neural TTS engine (~25 MB binary).
+      # The voice itself is a Hugging Face model: rhasspy/piper-voices.
+      - name: Download Piper and the en_US-lessac-medium voice
+        run: |
+          set -euo pipefail
+          mkdir -p .piper
+          curl -fsSL -o .piper/piper.tar.gz \
+            https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
+          tar -xzf .piper/piper.tar.gz -C .piper
+          BASE="https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium"
+          curl -fsSL -o .piper/en_US-lessac-medium.onnx      "$BASE/en_US-lessac-medium.onnx"
+          curl -fsSL -o .piper/en_US-lessac-medium.onnx.json "$BASE/en_US-lessac-medium.onnx.json"
+          ls -lh .piper/en_US-lessac-medium.onnx
+
+      - name: Generate narration and timing manifest
+        run: |
+          python3 scripts/tts.py \
+            --piper .piper/piper/piper \
+            --voice .piper/en_US-lessac-medium.onnx
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Render video with Remotion
+        run: |
+          npx remotion render src/index.ts TwoSquares \
+            out/two-squares-explainer.mp4 \
+            --gl=swangle --concurrency=3 --log=info
+
+      - name: Stitch the narration into one track and verify the MP4
+        run: |
+          set -euo pipefail
+          ffmpeg -y -hide_banner -loglevel error \
+            -f concat -safe 0 -i public/audio/list.txt -c copy out/narration.wav
+          echo "=== container ==="
+          ffprobe -v error -show_entries format=duration,size -of default=nw=1 out/two-squares-explainer.mp4
+          echo "=== streams ==="
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate \
+            -of default=nw=1 out/two-squares-explainer.mp4
+          echo "=== narration ==="
+          ffprobe -v error -show_entries format=duration -of default=nw=1 out/narration.wav
+
+      - name: Upload the finished video
+        uses: actions/upload-artifact@v4
+        with:
+          name: two-squares-explainer
+          path: |
+            out/two-squares-explainer.mp4
+            out/narration.wav
+          if-no-files-found: error

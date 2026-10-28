@@ -1,0 +1,68 @@
+{
+  "fps": 30,
+  "voice": "en_US-lessac-medium",
+  "totalSeconds": 152.08,
+  "totalFrames": 4772,
+  "scenes": [
+    {
+      "id": "01-title",
+      "audio": "audio/01-title.wav",
+      "seconds": 12.294,
+      "frames": 390
+    },
+    {
+      "id": "02-problem",
+      "audio": "audio/02-problem.wav",
+      "seconds": 18.046,
+      "frames": 562
+    },
+    {
+      "id": "03-rows",
+      "audio": "audio/03-rows.wav",
+      "seconds": 9.101,
+      "frames": 294
+    },
+    {
+      "id": "04-columns",
+      "audio": "audio/04-columns.wav",
+      "seconds": 12.898,
+      "frames": 408
+    },
+    {
+      "id": "05-block",
+      "audio": "audio/05-block.wav",
+      "seconds": 11.699,
+      "frames": 372
+    },
+    {
+      "id": "06-why-two",
+      "audio": "audio/06-why-two.wav",
+      "seconds": 24.796,
+      "frames": 765
+    },
+    {
+      "id": "07-total",
+      "audio": "audio/07-total.wav",
+      "seconds": 15.928,
+      "frames": 499
+    },
+    {
+      "id": "08-check",
+      "audio": "audio/08-check.wav",
+      "seconds": 15.405,
+      "frames": 483
+    },
+    {
+      "id": "09-pitfall",
+      "audio": "audio/09-pitfall.wav",
+      "seconds": 24.699,
+      "frames": 762
+    },
+    {
+      "id": "10-recap",
+      "audio": "audio/10-recap.wav",
+      "seconds": 7.215,
+      "frames": 237
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "two-squares-explainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion video explainer for the 'two squares, no shared row or column' combinatorics problem, with Piper TTS narration",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "tts": "python3 scripts/tts.py",
+    "typecheck": "tsc --noEmit",
+    "render": "remotion render src/index.ts TwoSquares out/two-squares-explainer.mp4 --gl=swangle"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "typescript": "5.6.3"
+  }
+}
