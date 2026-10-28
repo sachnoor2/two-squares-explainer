@@ -52,3 +52,20 @@ Push to `main`, or hit **Run workflow** on the *Render explainer video* workflow
 installs ffmpeg, fetches Piper + the Hugging Face voice, generates the narration, renders with
 Remotion and uploads `two-squares-explainer.mp4` plus the stitched `narration.wav` as a build
 artifact.
+
+## Long videos
+
+There is no maximum length. If the finished video would run longer than ten minutes, it is rendered in
+chunks and stitched afterwards — boundaries always fall between scenes, so no sentence is split.
+
+```bash
+python3 scripts/render_chunks.py --plan          # chunk list with frame ranges
+python3 scripts/render_chunks.py --only 2        # render one chunk (CI matrix job)
+python3 scripts/stitch.py                        # verify → stitch by number → verify → re-stitch
+```
+
+`stitch.py` checks that every chunk has both streams, is the expected length, and has audio within
+150 ms of its video; it then joins them in numeric order, verifies the result, and redoes the join
+(stream copy, then a full re-encode) if it is not clean. It writes `out/stitch-report.json` with the
+per-chunk drift in milliseconds, and exits `2` if a chunk itself is broken and `3` if the stitch never
+verified. See `PLAYBOOK.md` §3.6 for the full protocol and the workflow shape.
