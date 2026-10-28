@@ -252,14 +252,13 @@ export const LineFigure: React.FC<{ gap: 1 | 2; ok: boolean; width?: number }> =
   ok,
   width = 300,
 }) => {
-  const x0 = 30;
-  const unit = 62;
+  const x0 = 40;
+  const unit = 64;
   const top = 26;
   const bottom = 132;
   const xs = [0, 1, 2, 3].map((i) => x0 + i * unit);
-  const mid = (xs[0] + xs[gap]) / 2;
   return (
-    <svg viewBox="0 0 290 200" style={{ width }} role="img">
+    <svg viewBox="0 0 300 210" style={{ width }} role="img">
       <rect
         x={xs[0]}
         y={top}
@@ -271,38 +270,60 @@ export const LineFigure: React.FC<{ gap: 1 | 2; ok: boolean; width?: number }> =
         <line key={i} x1={x} y1={top} x2={x} y2={bottom} stroke="#a8a294" strokeWidth={3} />
       ))}
       <text
-        x={mid}
-        y={bottom + 34}
+        x={150}
+        y={bottom + 38}
         textAnchor="middle"
-        fontSize="19"
+        fontSize="17"
         fontFamily={inter}
         fontWeight="700"
         fill={ok ? theme.ok : theme.bad}
       >
-        {ok ? "adjacent → square ✓" : "2 apart → rectangle ✗"}
+        {ok ? "adjacent \u2192 square" : "2 apart \u2192 rectangle"}
+      </text>
+      <text
+        x={150}
+        y={bottom + 62}
+        textAnchor="middle"
+        fontSize="17"
+        fontFamily={inter}
+        fontWeight="700"
+        fill={ok ? theme.ok : theme.bad}
+      >
+        {ok ? "\u2713" : "\u2717"}
       </text>
     </svg>
   );
 };
 
 export const SharedLineFigure: React.FC<{ width?: number }> = ({ width = 300 }) => (
-  <svg viewBox="0 0 290 300" style={{ width }} role="img">
-    <rect x={35} y={30} width={210} height={210} fill={theme.card} stroke={theme.line} strokeWidth={2} />
-    <line x1={35} y1={135} x2={245} y2={135} stroke={theme.line} strokeWidth={2} />
-    <line x1={140} y1={30} x2={140} y2={240} stroke={theme.line} strokeWidth={2} />
-    <rect x={39} y={34} width={98} height={98} rx={10} fill={theme.accent} />
-    <rect x={143} y={139} width={98} height={98} rx={10} fill={theme.accent} />
-    <line x1={25} y1={135} x2={255} y2={135} stroke="#f59e0b" strokeWidth={7} />
+  <svg viewBox="0 0 300 330" style={{ width }} role="img">
+    <rect x={45} y={30} width={210} height={210} fill={theme.card} stroke={theme.line} strokeWidth={2} />
+    <line x1={45} y1={135} x2={255} y2={135} stroke={theme.line} strokeWidth={2} />
+    <line x1={150} y1={30} x2={150} y2={240} stroke={theme.line} strokeWidth={2} />
+    <rect x={49} y={34} width={98} height={98} rx={10} fill={theme.accent} />
+    <rect x={153} y={139} width={98} height={98} rx={10} fill={theme.accent} />
+    <line x1={35} y1={135} x2={265} y2={135} stroke="#f59e0b" strokeWidth={7} />
     <text
-      x={145}
-      y={278}
+      x={150}
+      y={286}
       textAnchor="middle"
-      fontSize="18"
+      fontSize="16"
       fontFamily={inter}
       fontWeight="700"
       fill={theme.faint}
     >
-      shared line, different rows → allowed
+      shared line,
+    </text>
+    <text
+      x={150}
+      y={310}
+      textAnchor="middle"
+      fontSize="16"
+      fontFamily={inter}
+      fontWeight="700"
+      fill={theme.faint}
+    >
+      different rows \u2192 allowed
     </text>
   </svg>
 );
