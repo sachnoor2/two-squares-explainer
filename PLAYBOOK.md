@@ -56,6 +56,7 @@ video-<slug>/
 ├── remotion.config.ts      h264, crf 20, yuv420p, jpeg frames, concurrency 2
 ├── narration.json          THE SCRIPT — one entry per scene, plus voice + fps + pad
 ├── scripts/tts.py          Piper → public/audio/<scene>.wav, then writes src/manifest.json
+├── scripts/tts_kokoro.py   same contract, Kokoro-82M voice (more human, Apache-2.0)
 ├── scripts/render_chunks.py  splits the timeline into numbered chunks and renders them
 ├── scripts/stitch.py         verifies the chunks, stitches them by number, re-stitches if unclean
 ├── src/manifest.json       generated: per-scene seconds → frames; total frames
@@ -109,6 +110,9 @@ also names the WAV file. `pad` is the breath after the voice stops (0.6–0.8 s)
 two-word scene from flashing past.
 
 ### 3.3 Generate the voice
+
+Two engines, one contract — see §4 for which to pick. Piper is the fast default; Kokoro-82M
+(`scripts/tts_kokoro.py`) is the human-sounding one.
 
 ```bash
 # engine (~26 MB, CPU only)
@@ -273,6 +277,60 @@ re-run with one click.
 
 ## 4. Language and voice
 
+Two engines are wired up, and the choice is per video. Both write one WAV per scene and both regenerate
+`src/manifest.json` from the measured audio, so nothing downstream changes.
+
+| | **Piper** — `scripts/tts.py` | **Kokoro-82M** — `scripts/tts_kokoro.py` |
+|---|---|---|
+| Sound | clear but audibly synthetic | markedly more human; natural pauses and prosody |
+| Weights | 63 MB voice + 26 MB engine | 311 MB ONNX model + 27 MB voice pack |
+| Speed (2 vCPU, measured) | RTF ≈ 0.4 — faster than real time | RTF ≈ 3–4 — about 6–8 core-seconds per audio second |
+| Languages | 53 | 8 (en-US, en-GB, es, fr, hi, it, ja, pt-BR, zh) |
+| Voices | 178 | 54 |
+| Licence | engine MIT, voices vary | **Apache-2.0**, model and voices |
+| Output | 22 050 Hz mono | 24 000 Hz mono |
+
+Rule of thumb: **use Kokoro when the voice carries the video** (explainer, documentary, promo — anything
+a person will listen to for two minutes) and Piper when you need 53 languages, a fast turnaround, or a
+narrator that must not sound like a person at all (kids' adventure, stylised fantasy).
+
+### 4.1 Kokoro-82M — the human-sounding upgrade
+
+82 M parameters, Apache-2.0, 24 kHz, and the most-downloaded open TTS model on the Hub (10.8 M downloads).
+It runs on plain CPU through onnxruntime — no torch, no GPU — which is why it fits a free runner.
+
+```bash
+pip install kokoro-onnx
+curl -L -o kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+curl -L -o voices-v1.0.bin  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+python3 scripts/tts_kokoro.py --model kokoro-v1.0.onnx --voices voices-v1.0.bin
+```
+
+`narration.json` gains a voice and a language, and any scene may override them:
+
+```json
+{ "fps": 30, "engine": "kokoro", "voice": "af_heart", "lang": "en-us", "speed": 1.0,
+  "scenes": [
+    { "id": "01-title", "text": "..." },
+    { "id": "02-hindi", "text": "...", "voice": "hf_alpha", "lang": "hi" }
+  ] }
+```
+
+Voices worth knowing: `af_heart`, `af_bella`, `am_michael` (English), `bf_emma` (British),
+`hf_alpha`, `hm_omega` (Hindi), `ff_siwis` (French), `if_sara` (Italian), `jf_alpha` (Japanese),
+`pf_dora` (Portuguese), `zf_xiaobei` (Mandarin). The full list is `VOICES.md` in the model repo.
+
+**Cost, measured on 2 vCPUs:** 4.1 s of speech took 17.8 s of CPU, so budget roughly **6–8 core-seconds
+per second of audio** — a 2.5-minute narration is about 5–10 minutes of runner time on top of the render.
+That is the price of the better voice; it is not a problem, it is just not free.
+
+**Honest limits.** Eight languages only. Non-English support is thin where training data is thin: the
+model card grades the Hindi voices **C** with only minutes of Hindi training data, so Hindi comes out
+intelligible but less polished than English. Non-English also leans on espeak-ng for phonemes, so
+pronunciation of names and loanwords can slip. Always listen to the first 20 seconds before shipping.
+
+### 4.2 Piper — the default, and the fastest
+
 Piper ships 178 voices across the languages below (verified against `voices.json`). Pick one voice per
 video; you *may* switch voices scene by scene, because each scene has its own audio file.
 
@@ -305,8 +363,36 @@ Piper's full language list: ar, bg, bn, ca, cs, cy, da, de, el, en, es, et, eu, 
 hu, hy, id, is, it, ja, ka, kk, ko, ku, lb, lt, lv, ml, mr, ne, nl, no, pl, pt, ro, ru, sk, sl, sq,
 sr, sv, sw, te, th, tr, uk, ur, vi, zh.
 
-**Languages Piper does not cover** — including Tamil, Gujarati, Kannada, Punjabi, Odia and Assamese —
-use Meta's MMS-TTS on Hugging Face instead, which has a voice for all of them:
+### 4.3 Heavier models, and when they are worth it
+
+All sizes and licences below were read off the Hub. Anything past ~1 GB stops being comfortable on a
+free runner: it is a GPU model, or a CPU render measured in tens of minutes.
+
+| Model | Licence | Languages | Weights | Verdict for a free runner |
+|---|---|---|---|---|
+| `ResembleAI/chatterbox` | MIT | 23, **including Hindi** | 2.1 GB per checkpoint (0.5 B) | Not on CPU — real-time factor is far above 1 |
+| `Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice` | Apache-2.0 | 10, no Indic | 1.8 GB + 0.7 GB tokenizer | Borderline; slower than Kokoro for no gain here |
+| `microsoft/VibeVoice-Realtime-0.5B` | MIT | English | 2.0 GB | Realtime streaming design, not a batch narrator |
+| `ai4bharat/indic-parler-tts` | Apache-2.0 | 18 Indic: as, bn, gu, hi, kn, ks, or, ml, mr, ne, pa, sa, sd, ta, te, ur, om | 3.75 GB | The quality answer for Tamil/Telugu/Gujarati/Kannada/Punjabi/Odia — if you will spend 20+ minutes of runner time |
+| `kenpath/svara-tts-v1` | Apache-2.0 | 18 Indic | 13.2 GB | Does not fit a free runner |
+| `k2-fsa/OmniVoice` | **licence not declared** | 1000+ | 3.2 GB | Do not ship it until the licence is clear |
+
+Decision order: Kokoro if the language is one of its eight → Piper if it is one of its 53 →
+`indic-parler-tts` if it is an Indic language neither covers and the quality matters →
+MMS (§4.4) as the always-works fallback.
+
+**Can the Hugging Face connector just synthesise the audio?** No. None of the thirty most-downloaded
+text-to-speech models on the Hub expose an inference-provider mapping, so they are not callable through
+the serverless inference API, and the connector's speech-adjacent tools stop at endpoint management,
+repo commits, model search and embeddings — there is no text-to-speech call. Hugging Face is where the
+*weights* come from; the synthesis always happens on the runner, from downloaded files. That is also why
+every step above is a `curl` and a `pip install` rather than an API key.
+
+### 4.4 Languages neither engine covers
+
+Tamil, Gujarati, Kannada, Punjabi, Odia and Assamese are in neither Piper nor Kokoro. Two ways out:
+`ai4bharat/indic-parler-tts` (§4.3) when the quality matters, or Meta's MMS-TTS — a small VITS model with
+a checkpoint for every one of them — when you just need it to work:
 
 ```python
 # pip install transformers torch scipy  (~2 GB on the runner; budget 3–4 extra minutes)
@@ -333,6 +419,8 @@ Marathi/Nepali, `Noto Sans Bengali`, `Noto Sans Telugu`, `Noto Sans Malayalam`, 
 `loadFont` from `@remotion/google-fonts`. Without it the runner falls back to a font with no glyphs
 and the video renders with boxes. For right-to-left text set `direction: "rtl"` and
 `textAlign: "right"` on the text container.
+
+### 4.5 Writing for the ear
 
 **Narration is written for the ear, not the eye.** In every language: spell numbers out
 ("one thousand five hundred and sixty eight", not "1568"), say "times" and "equals" instead of × and =,

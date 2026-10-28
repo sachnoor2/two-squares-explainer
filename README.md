@@ -69,3 +69,27 @@ python3 scripts/stitch.py                        # verify → stitch by number �
 (stream copy, then a full re-encode) if it is not clean. It writes `out/stitch-report.json` with the
 per-chunk drift in milliseconds, and exits `2` if a chunk itself is broken and `3` if the stitch never
 verified. See `PLAYBOOK.md` §3.6 for the full protocol and the workflow shape.
+
+## Voices: Piper or Kokoro-82M
+
+Two engines, one contract — both write one WAV per scene and regenerate `src/manifest.json` from the
+measured audio, so the timeline adapts either way.
+
+| | `scripts/tts.py` (Piper) | `scripts/tts_kokoro.py` (Kokoro-82M) |
+|---|---|---|
+| Sound | clear but synthetic | markedly more human |
+| Weights | 63 MB voice | 311 MB ONNX + 27 MB voices |
+| Speed on 2 vCPU | faster than real time (RTF ≈ 0.4) | ~6–8 core-seconds per audio second (RTF ≈ 3–4) |
+| Languages | 53 | 8 (en, es, fr, hi, it, ja, pt, zh) |
+| Licence | MIT engine / varied voices | Apache-2.0 |
+
+```bash
+pip install kokoro-onnx
+curl -L -o kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+curl -L -o voices-v1.0.bin  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+python3 scripts/tts_kokoro.py --model kokoro-v1.0.onnx --voices voices-v1.0.bin
+```
+
+`narration.json` takes `"engine": "kokoro"`, a `voice` and a `lang`, and any scene may override the voice.
+See `PLAYBOOK.md` §4 for the full comparison, including the heavier models (Chatterbox, Qwen3-TTS,
+indic-parler-tts) and why they do not fit a free runner.
